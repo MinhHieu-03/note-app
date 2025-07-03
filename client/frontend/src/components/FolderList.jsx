@@ -1,4 +1,11 @@
-import { Card, CardContent, IconButton, List, Typography } from "@mui/material";
+import {
+  Card,
+  CardContent,
+  IconButton,
+  List,
+  Typography,
+  TextField,
+} from "@mui/material";
 import { Box } from "@mui/system";
 import React, { useState } from "react";
 import { Link, useParams } from "react-router-dom";
@@ -6,13 +13,15 @@ import NewFolder from "./NewFolder";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
 import { graphQLRequest } from "../utils/request";
+import { useNavigate } from "react-router-dom";
 
-export default function FolderList({ folders }) {
+export default function FolderList({ folders: initialFolders }) {
   const { folderId } = useParams();
-  console.log({ folderId });
   const [activeFolderId, setActiveFolderId] = useState(folderId);
   const [hoveredId, setHoveredId] = useState(null);
   const [editingFolder, setEditingFolder] = useState(null);
+  const [folders, setFolders] = useState(initialFolders); // ✅ OK
+  const navigate = useNavigate();
 
   const handleRenameFolder = async (id, newName) => {
     const query = `
@@ -24,8 +33,17 @@ export default function FolderList({ folders }) {
     }
   `;
 
-    await graphQLRequest({ query, variables: { id, name: newName } });
-    window.location.reload(); // hoặc cập nhật local state nếu muốn nhanh hơn
+    const { renameFolder } = await graphQLRequest({
+      query,
+      variables: { id, name: newName },
+    });
+
+    // ✅ cập nhật state folders
+    setFolders((prev) =>
+      prev.map((folder) =>
+        folder.id === id ? { ...folder, name: renameFolder.name } : folder
+      )
+    );
   };
 
   const handleDeleteFolder = async (id) => {
@@ -40,7 +58,14 @@ export default function FolderList({ folders }) {
   `;
 
     await graphQLRequest({ query, variables: { id } });
-    window.location.href = "/"; // hoặc navigate("/")
+
+    // ✅ cập nhật lại danh sách folders
+    setFolders((prev) => prev.filter((folder) => folder.id !== id));
+
+    // ✅ nếu đang đứng trong folder vừa xoá, điều hướng về "/"
+    if (folderId === id) {
+      navigate("/");
+    }
   };
 
   return (
@@ -129,19 +154,31 @@ export default function FolderList({ folders }) {
                       </IconButton>
                     </Box>
                   )}
-                  {editingFolder === id && (
-                    <Box sx={{ mt: 1 }}>
-                      <input
-                        type="text"
-                        defaultValue={name}
-                        onKeyDown={(e) => {
-                          if (e.key === "Enter") {
-                            handleRenameFolder(id, e.target.value);
-                            setEditingFolder(null);
-                          }
-                        }}
-                      />
-                    </Box>
+                  {editingFolder === id ? (
+                    <TextField
+                      variant="standard" // gạch chân tinh gọn
+                      defaultValue={name}
+                      autoFocus
+                      fullWidth
+                      inputProps={{
+                        // cỡ chữ & đậm giống Typography
+                        style: { fontSize: 16, fontWeight: "bold" },
+                      }}
+                      onBlur={(e) => {
+                        handleRenameFolder(id, e.target.value);
+                        setEditingFolder(null);
+                      }}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter") {
+                          handleRenameFolder(id, e.target.value);
+                          setEditingFolder(null);
+                        }
+                      }}
+                    />
+                  ) : (
+                    <Typography sx={{ fontSize: 16, fontWeight: "bold" }}>
+                      {/* {name} */}
+                    </Typography>
                   )}
                 </CardContent>
               </Card>
