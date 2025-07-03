@@ -13,7 +13,8 @@ scalar Date
     id: String!,
     content: String,
     createdAt: Date, 
-    updatedAt: Date   
+    updatedAt: Date,  
+    folderId: String! 
   }
 
   type Author {
@@ -31,6 +32,7 @@ scalar Date
     addFolder(name: String!): Folder,
     addNote(content: String!, folderId: ID!): Note,
     updateNote(id: String!, content: String!): Note,
+    deleteNote(id: ID!): Note,
     register(uid: String!, name: String!): Author
   }
 

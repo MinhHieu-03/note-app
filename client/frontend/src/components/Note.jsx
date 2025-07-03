@@ -1,14 +1,15 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ContentState,
   convertFromHTML,
   convertToRaw,
   EditorState,
-} from 'draft-js';
-import { Editor } from 'react-draft-wysiwyg';
-import draftToHtml from 'draftjs-to-html';
-import { useLoaderData, useSubmit, useLocation } from 'react-router-dom';
-import { debounce } from '@mui/material';
+} from "draft-js";
+import { Editor } from "react-draft-wysiwyg";
+import draftToHtml from "draftjs-to-html";
+import { useLoaderData, useSubmit, useLocation } from "react-router-dom";
+import { debounce } from "@mui/material";
+import { Height } from "@mui/icons-material";
 
 export default function Note() {
   const { note } = useLoaderData();
@@ -29,23 +30,26 @@ export default function Note() {
     setEditorState(EditorState.createWithContent(state));
   }, [note.id]);
 
-  console.log({location})
+  console.log({ location });
 
   useEffect(() => {
     debouncedMemorized(rawHTML, note, location.pathname);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [rawHTML, location.pathname]);
 
   const debouncedMemorized = useMemo(() => {
     return debounce((rawHTML, note, pathname) => {
       if (rawHTML === note.content) return;
 
-      submit({...note, content: rawHTML}, {
-        method: 'post',
-        action: pathname
-      })
+      submit(
+        { ...note, content: rawHTML },
+        {
+          method: "post",
+          action: pathname,
+        }
+      );
     }, 1000);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -61,7 +65,7 @@ export default function Note() {
     <Editor
       editorState={editorState}
       onEditorStateChange={handleOnChange}
-      placeholder='Write something!'
+      placeholder="Write something!"
     />
   );
 }

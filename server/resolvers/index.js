@@ -31,7 +31,6 @@ export const resolvers = {
       const noteId = args.noteId;
       const note = await NoteModel.findById(noteId);
       return note;
-      // return fakeData.notes.find((note) => note.id === noteId);
     },
   },
   Folder: {
@@ -63,6 +62,10 @@ export const resolvers = {
     updateNote: async (parent, args) => {
       const noteId = args.id;
       const note = await NoteModel.findByIdAndUpdate(noteId, args);
+      return note;
+    },
+    deleteNote: async (parent, args) => {
+      const note = await NoteModel.findByIdAndDelete(args.id);
       return note;
     },
     addFolder: async (parent, args, context) => {

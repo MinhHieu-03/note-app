@@ -23,7 +23,7 @@ export default function Home() {
 
       <Grid
         container
-        sx={{ height: "50vh", boxShadow: "0 0 15px 0 rgb(193 193 193 / 60%)" }}
+        sx={{ height: "60vh", boxShadow: "0 0 15px 0 rgb(193 193 193 / 60%)" }}
       >
         <Grid item xs={3} sx={{ height: "100%", p: 1}}>
           <FolderList folders={folders} />

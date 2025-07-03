@@ -1,4 +1,4 @@
-import { NoteAddOutlined } from '@mui/icons-material';
+import { NoteAddOutlined } from "@mui/icons-material";
 import {
   Card,
   CardContent,
@@ -7,10 +7,10 @@ import {
   List,
   Tooltip,
   Typography,
-} from '@mui/material';
-import { Box } from '@mui/system';
-import React, { useEffect, useState } from 'react';
-import moment from 'moment';
+} from "@mui/material";
+import { Box } from "@mui/system";
+import React, { useEffect, useState } from "react";
+import moment from "moment";
 import {
   Link,
   Outlet,
@@ -18,7 +18,9 @@ import {
   useLoaderData,
   useSubmit,
   useNavigate,
-} from 'react-router-dom';
+} from "react-router-dom";
+import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 export default function NoteList() {
   const { noteId, folderId } = useParams();
@@ -26,8 +28,9 @@ export default function NoteList() {
   const { folder } = useLoaderData();
   const submit = useSubmit();
   const navigate = useNavigate();
+  const [hoveredId, setHoveredId] = useState(null);
 
-  console.log('[NoteLIST]', { folder });
+  console.log("[NoteLIST]", { folder });
 
   useEffect(() => {
     if (noteId) {
@@ -44,40 +47,55 @@ export default function NoteList() {
   const handleAddNewNote = () => {
     submit(
       {
-        content: '',
+        content: "",
         folderId,
       },
-      { method: 'post', action: `/folders/${folderId}` }
+      { method: "post", action: `/folders/${folderId}` }
     );
   };
 
+  const handleDeleteNote = (id) => {
+  if (!window.confirm("Delete this note?")) return;
+
+  /* ❌  ĐỪNG navigate ở đây  */
+
+  /* ✅ Gửi POST tới route con (đường dẫn tương đối) */
+  submit(
+  { intent: "delete" },           
+  { method: "post", action: `note/${id}` } 
+);
+
+};
+
+
   return (
-    <Grid container height='100%'>
+    <Grid container height="100%">
+      {/* Cột danh sách ghi chú */}
       <Grid
         item
         xs={4}
         sx={{
-          width: '100%',
+          width: "100%",
           maxWidth: 360,
-          bgcolor: '#F0EBE3',
-          height: '100%',
-          overflowY: 'auto',
-          padding: '10px',
-          textAlign: 'left',
+          bgcolor: "#F0EBE3",
+          height: "100%",
+          overflowY: "auto",
+          p: 2,
+          textAlign: "left",
         }}
       >
         <List
           subheader={
             <Box
               sx={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
               }}
             >
-              <Typography sx={{ fontWeight: 'bold' }}>Notes</Typography>
-              <Tooltip title='Add Note' onClick={handleAddNewNote}>
-                <IconButton size='small'>
+              <Typography fontWeight="bold">Notes</Typography>
+              <Tooltip title="Add Note">
+                <IconButton size="small" onClick={handleAddNewNote}>
                   <NoteAddOutlined />
                 </IconButton>
               </Tooltip>
@@ -85,39 +103,78 @@ export default function NoteList() {
           }
         >
           {folder.notes.map(({ id, content, updatedAt }) => {
+            const isActive = id === activeNoteId;
+            const isHovered = id === hoveredId;
+
             return (
-              <Link
+              <Box
                 key={id}
-                to={`note/${id}`}
-                style={{ textDecoration: 'none' }}
-                onClick={() => setActiveNoteId(id)}
+                onMouseEnter={() => setHoveredId(id)}
+                onMouseLeave={() => setHoveredId(null)}
+                sx={{ position: "relative" }}
               >
-                <Card
-                  sx={{
-                    mb: '5px',
-                    backgroundColor:
-                      id === activeNoteId ? 'rgb(255 211 140)' : null,
-                  }}
+                <Link
+                  to={`note/${id}`}
+                  style={{ textDecoration: "none" }}
+                  onClick={() => setActiveNoteId(id)}
                 >
-                  <CardContent
-                    sx={{ '&:last-child': { pb: '10px' }, padding: '10px' }}
+                  <Card
+                    sx={{
+                      mb: 0.5,
+                      bgcolor: isActive ? "rgb(255 211 140)" : undefined,
+                    }}
                   >
-                    <div
-                      style={{ fontSize: 14, fontWeight: 'bold' }}
-                      dangerouslySetInnerHTML={{
-                        __html: `${content.substring(0, 30) || 'Empty'}`,
-                      }}
-                    />
-                    <Typography sx={{ fontSize: '10px' }}>
-                      {moment(updatedAt).format('MMMM Do YYYY, h:mm:ss a')}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Link>
+                    <CardContent sx={{ p: 1.25, "&:last-child": { pb: 1.25 } }}>
+                      <div
+                        style={{ fontSize: 14, fontWeight: "bold" }}
+                        dangerouslySetInnerHTML={{
+                          __html: content.substring(0, 30) || "Empty",
+                        }}
+                      />
+                      <Typography fontSize={10}>
+                        {moment(updatedAt).format("MMMM Do YYYY, h:mm:ss a")}
+                      </Typography>
+
+                      {isHovered && (
+                        <Box
+                          sx={{
+                            position: "absolute",
+                            top: 4,
+                            right: 4,
+                            display: "flex",
+                            gap: 1,
+                          }}
+                          /* Ngăn Link bị kích hoạt khi bấm icon */
+                          onClick={(e) => e.preventDefault()}
+                        >
+                          {/* <IconButton
+                            size="small"
+                            color="primary"
+                            onClick={() => handleEditNote(id)}
+                          >
+                            <EditIcon fontSize="small" />{" "}
+                            {/* ✅ fontSize chứ không phải fonSize */}
+                          {/* </IconButton> */} 
+
+                          <IconButton
+                            size="small"
+                            color="error"
+                            onClick={() => handleDeleteNote(id)}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      )}
+                    </CardContent>
+                  </Card>
+                </Link>
+              </Box>
             );
           })}
         </List>
       </Grid>
+
+      {/* Khu vực hiển thị nội dung ghi chú */}
       <Grid item xs={8}>
         <Outlet />
       </Grid>

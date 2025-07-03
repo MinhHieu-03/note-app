@@ -1,4 +1,5 @@
-import { graphQLRequest } from './request';
+import { graphQLRequest } from "./request";
+import { redirect } from "react-router-dom";
 
 export const notesLoader = async ({ params: { folderId } }) => {
   const query = `query Folder($folderId: String!) {
@@ -39,12 +40,12 @@ export const noteLoader = async ({ params: { noteId } }) => {
   return data;
 };
 
-export const addNewNote = async ({ params, request}) => {
+export const addNewNote = async ({ params, request }) => {
   const newNote = await request.formData();
   const formDataObj = {};
   newNote.forEach((value, key) => (formDataObj[key] = value));
-  
-  console.log({newNote, formDataObj});
+
+  console.log({ newNote, formDataObj });
   const query = `mutation Mutation($content: String!, $folderId: ID!) {
     addNote(content: $content, folderId: $folderId) {
       id
@@ -52,36 +53,56 @@ export const addNewNote = async ({ params, request}) => {
     }
   }`;
 
-  const {addNote} = await graphQLRequest({
+  const { addNote } = await graphQLRequest({
     query,
-    variables: formDataObj
-  })
+    variables: formDataObj,
+  });
 
-  console.log({addNote})
+  console.log({ addNote });
 
   return addNote;
-}
+};
 
 
-export const updateNote = async ({ params, request}) => {
-  const updatedNote = await request.formData();
+export const noteAction = async ({ request, params }) => {
+  const formData = await request.formData();
+  const intent = formData.get("intent");
+
+  if (intent === "delete") {
+    // Lấy thẳng từ params
+    const { noteId, folderId } = params;
+
+    // Xoá note
+    await graphQLRequest({
+      query: `
+        mutation ($id: ID!) {
+          deleteNote(id: $id) { id }
+        }
+      `,
+      variables: { id: noteId },
+    });
+
+    // Chuyển về danh sách folder
+    return redirect(`/folders/${folderId}`);
+  }
+
+  // ✏️ Nếu không phải delete → update
   const formDataObj = {};
-  updatedNote.forEach((value, key) => (formDataObj[key] = value));
-  
-  console.log({updatedNote, formDataObj});
-  const query = `mutation Mutation($id: String!, $content: String!) {
-    updateNote(id: $id, content: $content) {
-      id
-      content
+  formData.forEach((value, key) => (formDataObj[key] = value));
+
+  const updateQuery = `
+    mutation UpdateNote($id: String!, $content: String!) {
+      updateNote(id: $id, content: $content) {
+        id
+        content
+      }
     }
-  }`;
+  `;
 
-  const {updateNote} = await graphQLRequest({
-    query,
-    variables: formDataObj
-  })
-
-  console.log({updateNote})
+  const { updateNote } = await graphQLRequest({
+    query: updateQuery,
+    variables: formDataObj,
+  });
 
   return updateNote;
-}
+};
