@@ -1,9 +1,9 @@
-import { GraphQLScalarType } from 'graphql';
-import { AuthorModel, FolderModel, NoteModel } from '../models/index.js';
+import { GraphQLScalarType } from "graphql";
+import { AuthorModel, FolderModel, NoteModel } from "../models/index.js";
 
 export const resolvers = {
   Date: new GraphQLScalarType({
-    name: 'Date',
+    name: "Date",
     parseValue(value) {
       return new Date(value);
     },
@@ -74,6 +74,20 @@ export const resolvers = {
       await newFolder.save();
       return newFolder;
     },
+    renameFolder: async (_, { id, name }) => {
+      const folder = await FolderModel.findByIdAndUpdate(
+        id,
+        { name },
+        { new: true }
+      );
+      return folder;
+    },
+    deleteFolder: async (_, { id }) => {
+      await NoteModel.deleteMany({ folderId: id }); // xoá ghi chú liên quan
+      const folder = await FolderModel.findByIdAndDelete(id);
+      return folder;
+    },
+
     register: async (parent, args) => {
       const foundUser = await AuthorModel.findOne({ uid: args.uid });
 

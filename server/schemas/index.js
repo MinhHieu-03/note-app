@@ -30,6 +30,8 @@ scalar Date
 
   type Mutation {
     addFolder(name: String!): Folder,
+    renameFolder(id: ID!, name: String!): Folder,
+    deleteFolder(id: ID!): Folder,
     addNote(content: String!, folderId: ID!): Note,
     updateNote(id: String!, content: String!): Note,
     deleteNote(id: ID!): Note,

@@ -5,12 +5,43 @@ import { Link, useParams } from "react-router-dom";
 import NewFolder from "./NewFolder";
 import EditIcon from "@mui/icons-material/Edit";
 import DeleteIcon from "@mui/icons-material/Delete";
+import { graphQLRequest } from "../utils/request";
 
 export default function FolderList({ folders }) {
   const { folderId } = useParams();
   console.log({ folderId });
   const [activeFolderId, setActiveFolderId] = useState(folderId);
   const [hoveredId, setHoveredId] = useState(null);
+  const [editingFolder, setEditingFolder] = useState(null);
+
+  const handleRenameFolder = async (id, newName) => {
+    const query = `
+    mutation ($id: ID!, $name: String!) {
+      renameFolder(id: $id, name: $name) {
+        id
+        name
+      }
+    }
+  `;
+
+    await graphQLRequest({ query, variables: { id, name: newName } });
+    window.location.reload(); // hoặc cập nhật local state nếu muốn nhanh hơn
+  };
+
+  const handleDeleteFolder = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this folder?")) return;
+
+    const query = `
+    mutation ($id: ID!) {
+      deleteFolder(id: $id) {
+        id
+      }
+    }
+  `;
+
+    await graphQLRequest({ query, variables: { id } });
+    window.location.href = "/"; // hoặc navigate("/")
+  };
 
   return (
     <List
@@ -81,12 +112,35 @@ export default function FolderList({ folders }) {
                       }}
                       onClick={(e) => e.preventDefault()} // Ngăn Link bị click khi bấm icon
                     >
-                      <IconButton size="small" color="primary">
+                      <IconButton
+                        size="small"
+                        color="primary"
+                        onClick={() => setEditingFolder(id)}
+                      >
                         <EditIcon fontSize="small" />
                       </IconButton>
-                      <IconButton size="small" color="error">
+
+                      <IconButton
+                        size="small"
+                        color="error"
+                        onClick={() => handleDeleteFolder(id)}
+                      >
                         <DeleteIcon fontSize="small" />
                       </IconButton>
+                    </Box>
+                  )}
+                  {editingFolder === id && (
+                    <Box sx={{ mt: 1 }}>
+                      <input
+                        type="text"
+                        defaultValue={name}
+                        onKeyDown={(e) => {
+                          if (e.key === "Enter") {
+                            handleRenameFolder(id, e.target.value);
+                            setEditingFolder(null);
+                          }
+                        }}
+                      />
                     </Box>
                   )}
                 </CardContent>
