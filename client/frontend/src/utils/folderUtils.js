@@ -16,6 +16,7 @@ export const foldersLoader = async () => {
 export const addNewFolder = async (newFolder) => {
   const query = `mutation Mutation($name: String!) {
     addFolder(name: $name) {
+      id
       name
       author {
         name

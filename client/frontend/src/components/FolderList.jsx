@@ -23,6 +23,13 @@ export default function FolderList({ folders: initialFolders }) {
   const [folders, setFolders] = useState(initialFolders); // ✅ OK
   const navigate = useNavigate();
 
+
+  // 🆕 thêm callback
+  const handleAddFolderToList = (folder) => {
+  setFolders((prev) => [folder, ...prev]);
+};
+
+
   const handleRenameFolder = async (id, newName) => {
     const query = `
     mutation ($id: ID!, $name: String!) {
@@ -89,10 +96,11 @@ export default function FolderList({ folders: initialFolders }) {
           <Typography sx={{ fontWeight: "bold", color: "white" }}>
             Folders
           </Typography>
-          <NewFolder />
+          <NewFolder onAddFolder={handleAddFolderToList} />
         </Box>
       }
     >
+      
       {folders.map(({ id, name }) => {
         const isActive = id === activeFolderId;
         const isHovered = id === hoveredId;

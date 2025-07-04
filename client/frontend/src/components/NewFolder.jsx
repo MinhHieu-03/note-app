@@ -13,7 +13,7 @@ import React, { useEffect, useState } from "react";
 import { addNewFolder } from "../utils/folderUtils";
 import { useSearchParams, useNavigate } from "react-router-dom";
 
-export default function NewFolder() {
+export default function NewFolder({ onAddFolder }) {
   const [newFolderName, setNewFolderName] = useState("");
   const [searchParams, setSearchParams] = useSearchParams();
   const [open, setOpen] = useState(false);
@@ -38,7 +38,9 @@ export default function NewFolder() {
 
   const handleAddNewFolder = async () => {
     const { addFolder } = await addNewFolder({ name: newFolderName });
-    console.log({ addFolder });
+
+    // Gọi callback để thêm folder mới vào danh sách
+    onAddFolder?.(addFolder);
 
     handleClose();
   };
