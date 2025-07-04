@@ -58,10 +58,17 @@ const authorizationJWT = async (req, res, next) => {
   }
 };
 
+// ✅ Public route để test truy cập trình duyệt
+app.get("/", (req, res) => {
+  res.send("📝 Note App GraphQL API – Go to /graphql with a token.");
+});
+
+// ✅ Áp dụng xác thực **chỉ cho POST /graphql**
+app.post("/graphql", authorizationJWT);
 
 app.use(
   cors(),
-  authorizationJWT,
+  // authorizationJWT,
   bodyParser.json(),
   expressMiddleware(server, {
     context: async({req, res}) => {
